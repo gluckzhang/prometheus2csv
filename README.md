@@ -1,5 +1,5 @@
 # metrics2csv
-This is a small tool written in Python 3. It helps us query multiple metrics from prometheus, and save them into a csv file.
+This is a tool to query multiple metrics from a prometheus database through the REST API, and save them into a csv file.
 
 ## Why do we need this?
 Needless to say, we have lots of requirements towards docker monitoring. And what's more, we want to dig into metrics exporting methods. In order to do some data analysis, we want to extract metrics in a usable/simple format (e.g. CSV). It's easy to query some metrics, but the tools paid less attention to export multiple metrics joined by timestamp(this can be some scenarios about data analysis, or dev daily report), then metrics2csv was born. More info about 2 basic docker monitoring solutions, you can visit my blog [here](http://blog.gluckzhang.com/archives/145/).
