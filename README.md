@@ -1,19 +1,19 @@
-# metrics2csv
+# prometheus2csv
 This is a tool to query multiple metrics from a prometheus database through the REST API, and save them into a csv file.
 
 ## Why do we need this?
-Needless to say, we have lots of requirements towards docker monitoring. And what's more, we want to dig into metrics exporting methods. In order to do some data analysis, we want to extract metrics in a usable/simple format (e.g. CSV). It's easy to query some metrics, but the tools paid less attention to export multiple metrics joined by timestamp(this can be some scenarios about data analysis, or dev daily report), then metrics2csv was born. More info about 2 basic docker monitoring solutions, you can visit my blog [here](http://blog.gluckzhang.com/archives/145/).
+Needless to say, we have lots of requirements towards docker monitoring. And what's more, we want to dig into metrics exporting methods. In order to do some data analysis, we want to extract metrics in a usable/simple format (e.g. CSV). It's easy to query some metrics, but the tools paid less attention to export multiple metrics joined by timestamp(this can be some scenarios about data analysis, or dev daily report), then prometheus2csv was born. More info about 2 basic docker monitoring solutions, you can visit my blog [here](http://blog.gluckzhang.com/archives/145/).
 
 ## How to use it?
-`metrics2csv` is a command line tool for Python 3. Basic useage is as follows:
+`prometheus2csv` is a command line tool for Python 3. Basic useage is as follows:
 
 ```bash
-python metrics2csv.py -h http://prometheus:9090 -c blc_server -o test.csv -s 10s --period=120
+python prometheus2csv.py -h http://prometheus:9090 -c blc_server -o test.csv -s 10s --period=120
 ```
 
 `http://prometheus:9090` is your Prometheus server's address, `blc_server` is the name of the container which you want to query multiple metrics, `test.csv` is the target csv file's name(default is result.csv), `10s` indicates query resolution step width in Prometheus query API, `120` means that you will get 120 **minutes** data which is in the most recent period.
 
-### All arguments of metrics2csv
+### All arguments of prometheus2csv
 
 Required arguments:
 
@@ -66,5 +66,5 @@ Construct series of query urls based on the names of metrics, then we can get ti
 ## TODO
 
 - Generate a config file for the first run: then you can update the query easily, and you can also choose some of the metrics you are interested in, instead of query all metrics.
-- Multiple query jobs: maybe we need to query series of containers' monitoring data, so it's better to run metrics2csv one time and get all the info you want (maybe with multiple csv files, classified by containers' names).
-- For some metrics in Prometheus (acturally from cAdvisor), they have the same `__name__`, but some other labels' names differ. For example, you might get series of results for `container_fs_io_time_seconds_total`, because the container might have many `device` values. metrics2csv should handle this circumstances.
+- Multiple query jobs: maybe we need to query series of containers' monitoring data, so it's better to run prometheus2csv one time and get all the info you want (maybe with multiple csv files, classified by containers' names).
+- For some metrics in Prometheus (acturally from cAdvisor), they have the same `__name__`, but some other labels' names differ. For example, you might get series of results for `container_fs_io_time_seconds_total`, because the container might have many `device` values. prometheus2csv should handle this circumstances.
