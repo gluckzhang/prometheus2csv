@@ -63,6 +63,67 @@ Construct series of query urls based on the names of metrics, then we can get ti
 
 *As far as I know, Prometheus doesn't provide such method to get multiple metrics' values joined by timestamp, so we have to make series of queries as well. Sometimes you can get similar csv file in Grafana, this is an end-user method talked in [my blog](http://blog.gluckzhang.com/archives/145/)*
 
+## Commands to deploy a proper cAdvisor + Prometheus
+
+1) Assume that you have run some containers which you want to monitor
+
+2) Run cadvisor in a container
+
+```bash
+sudo docker run \
+--volume=/:/rootfs:ro \
+--volume=/var/run:/var/run:rw \
+--volume=/sys:/sys:ro \
+--volume=/var/lib/docker/:/var/lib/docker:ro \
+-p 8080:8080 \
+--detach=true \
+--name=cadvisor \
+google/cadvisor:latest
+```
+
+3) Run Prometheus and set up a job about fetching metrics from cAdvisor
+
+- First of all, we touch a new configure file
+
+```xml
+ ## prometheus.yml ##
+ 
+ global:
+     scrape_interval:     15s # By default, scrape targets every 15 seconds.
+     evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+         # scrape_timeout is set to the global default (10s).
+ 
+         # Attach these labels to any time series or alerts when communicating with
+         # external systems (federation, remote storage, Alertmanager).
+     external_labels:
+         monitor: 'blc-monitor'
+ 
+ scrape_configs:
+     - job_name: 'prometheus'
+       scrape_interval: 5s
+       static_configs:
+           - targets: ['localhost:9090']
+     
+     - job_name: 'cadvisor'
+       # Override the global default and scrape targets from this job every 5 seconds.
+       scrape_interval: 5s
+       static_configs:
+           - targets: ['cadvisor:8080']
+```
+
+- Start Prometheus as container service, and link it to cadvisor
+
+```bash
+sudo docker run -d -p 9090:9090 \
+-v /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \
+--link cadvisor:cadvisor \
+--name=prometheus \
+prom/prometheus \
+--config.file=/etc/prometheus/prometheus.yml
+```
+
+Now you can use prometheus2csv to export your monitoring data, cheers!
+
 ## TODO
 
 - Generate a config file for the first run: then you can update the query easily, and you can also choose some of the metrics you are interested in, instead of query all metrics.
