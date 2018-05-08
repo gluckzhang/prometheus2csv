@@ -17,7 +17,7 @@ RESOLUTION = '' # default: 10s
 OUTPUTFILE = '' # default: result.csv
 START = '' # rfc3339 | unix_timestamp
 END = '' # rfc3339 | unix_timestamp
-PERIOD = 60 # unit: miniute, default 60
+PERIOD = 60 # unit: minute, default 60
 
 def main():
     handle_args(sys.argv[1:])
@@ -121,7 +121,7 @@ def query_metric_values(metricnames):
         start_time = START
 
     metric = metricnames[0]
-    response = requests.get(PROMETHEUS_URL + RANGE_QUERY_API, params={'query': '{0}{{name="blc_server"}}'.format(metric), 'start': start_time, 'end': end_time, 'step': RESOLUTION})
+    response = requests.get(PROMETHEUS_URL + RANGE_QUERY_API, params={'query': '{0}{{name="{1}"}}'.format(metric,CONTAINER), 'start': start_time, 'end': end_time, 'step': RESOLUTION})
     status = response.json()['status']
 
     if status == "error":
@@ -129,11 +129,16 @@ def query_metric_values(metricnames):
         sys.exit(2)
 
     results = response.json()['data']['result']
+
+    if len(results) == 0:
+        logging.error(response.json())
+        sys.exit(2)
+
     for value in results[0]['values']:
         csvset[value[0]] = [value[1]]
 
     for metric in metricnames[1:]:
-        response = requests.get(PROMETHEUS_URL + RANGE_QUERY_API, params={'query': '{0}{{name="blc_server"}}'.format(metric), 'start': start_time, 'end': end_time, 'step': RESOLUTION})
+        response = requests.get(PROMETHEUS_URL + RANGE_QUERY_API, params={'query': '{0}{{name="{1}"}}'.format(metric,CONTAINER), 'start': start_time, 'end': end_time, 'step': RESOLUTION})
         results = response.json()['data']['result']
         for value in results[0]['values']:
             csvset[value[0]].append(value[1])
@@ -141,7 +146,7 @@ def query_metric_values(metricnames):
     return csvset
 
 def write2csv(filename, metricnames, dataset):
-    with open(filename, 'w', newline='') as file:
+    with open(filename, 'w') as file:
         writer = csv.writer(file)
         writer.writerow(['timestamp'] + metricnames)
         for timestamp in sorted(dataset.keys(), reverse=True):
